@@ -2213,19 +2213,42 @@
             const expenses = getFilteredTransactions().filter(t => t.type === 'expense');
             if (charts.category) { charts.category.destroy(); charts.category = null; }
             if (!expenses.length) { ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height); if(legendContainer) legendContainer.innerHTML = ''; return; }
+            
             const grouped = {};
             expenses.forEach(t => { grouped[t.category] = (grouped[t.category] || 0) + t.amount; });
             const entries = Object.entries(grouped).sort((a,b) => b[1]-a[1]);
             const bg = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+            
             charts.category = new Chart(ctx, {
                 type: 'doughnut',
                 data: { labels: entries.map(e => e[0]), datasets: [{ data: entries.map(e => e[1]), backgroundColor: bg }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
+
             if (legendContainer) {
                 const total = entries.reduce((a,b)=>a+b[1],0);
-                legendContainer.innerHTML = entries.map((e, i) => `<div class="legend-item"><div class="legend-color" style="background:${bg[i%bg.length]}"></div><span>${e[0]}</span><span class="legend-value">${((e[1]/total)*100).toFixed(1)}%</span></div>`).join('');
+                legendContainer.innerHTML = entries.map((e, i) => `
+                    <div class="legend-item" data-index="${i}" onclick="toggleChartSlice(${i}, this)">
+                        <div class="legend-color" style="background:${bg[i%bg.length]}"></div>
+                        <span>${e[0]}</span>
+                        <span class="legend-value">${((e[1]/total)*100).toFixed(1)}%</span>
+                    </div>
+                `).join('');
             }
+        }
+
+        // Funzione per attivare/disattivare la fetta della torta al click sulla legenda
+        function toggleChartSlice(index, element) {
+            if (!charts.category) return;
+            
+            // Usa il toggle nativo di Chart.js per ricalcolare e chiudere la torta
+            charts.category.toggleDataVisibility(index);
+            charts.category.update();
+            
+            // Gestione visiva della voce nella legenda (opzionale, per capire cosa è attivo/disattivo)
+            const meta = charts.category.getDatasetMeta(0);
+            const isHidden = meta.data[index].hidden;
+            element.style.opacity = isHidden ? '0.4' : '1';
         }
 
         async function syncToSheets(t) {
