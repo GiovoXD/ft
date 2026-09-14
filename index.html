@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>💰 Finance Tracker</title>
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRmluYW5jZSBUcmFja2VyIiwic2hvcnRfbmFtZSI6IkZpblRyYWNrZXIiLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsInRoZW1lX2NvbG9yIjoiIzYzNjZmMSIsImJhY2tncm91bmRfY29sb3IiOiIjZjhmYWZjIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhSb2JHNXZjMlZ5Ym1WZmRHOWpZV3hzYVdkcGJtY3VjMnh2Ym1WaGRHbGhiQ0V3TURBd01EQXdNQ0E9PSIsInNpemVzIjoiMTkyLzE5MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn0seyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LUEyVnVaWEpoYVc0Z1ZHOWpZV3hzYVdkcGJtY3VjMnh2Ym1WaGRHbGhiQ0V3TURBd01EQXdNQ0E9PSIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+    <!-- <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRmluYW5jZSBUcmFja2VyIiwic2hvcnRfbmFtZSI6IkZpblRyYWNrZXIiLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsInRoZW1lX2NvbG9yIjoiIzYzNjZmMSIsImJhY2tncm91bmRfY29sb3IiOiIjZjhmYWZjIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhSb2JHNXZjMlZ5Ym1WZmRHOWpZV3hzYVdkcGJtY3VjMnh2Ym1WaGRHbGhiQ0V3TURBd01EQXdNQ0E9PSIsInNpemVzIjoiMTkyLzE5MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn0seyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LUEyVnVaWEpoYVc0Z1ZHOWpZV3hzYVdkcGJtY3VjMnh2Ym1WaGRHbGhiQ0V3TURBd01EQXdNQ0E9PSIsInNpemVzIjoiNTEyeDUxMiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ=="> -->
+    <link rel="icon" type="image/png" href="img/favico.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
@@ -2270,6 +2271,7 @@
         async function syncFromSheets() {
             if (!state.scriptUrl) return;
             showSyncStatus('Caricamento...', 'loading');
+            startWithCleanData();
             try {
                 const res = await fetch(state.scriptUrl, { method: 'GET', redirect: 'follow' });
                 const result = await res.json();
@@ -2396,6 +2398,13 @@
             if (!confirm('Cancellare tutto?')) return;
             triggerVibration([80, 80, 80]);
             state.transactions = []; state.recurring = []; saveToStorage(); updateDashboard(); closeSettings();
+        }
+
+        function startWithCleanData() {
+            state.transactions = []; 
+            state.recurring = []; 
+            saveToStorage(); 
+            updateDashboard();
         }
 
         async function checkRecurringTransactions() {
