@@ -1177,6 +1177,33 @@
             display: flex;
             gap: 0.35rem;
         }
+
+        /* Nuovi stili per gerarchia bottoni 2x2 */
+        .type-btn.income, .type-btn.expense {
+            padding: 1rem;
+            font-size: 1rem;
+        }
+
+        .type-btn.investment, .type-btn.divestment {
+            padding: 0.6rem;
+            font-size: 0.85rem;
+            background: var(--bg);
+            border-style: dashed;
+        }
+
+        .type-btn.active.investment {
+            background: #8b5cf6;
+            color: white;
+            border-style: solid;
+            border-color: #8b5cf6;
+        }
+
+        .type-btn.active.divestment {
+            background: #f59e0b;
+            color: white;
+            border-style: solid;
+            border-color: #f59e0b;
+        }
     </style>
 </head>
 <body>
@@ -1196,15 +1223,26 @@
     <main class="container" role="main">
         <!-- Balance Card -->
         <section class="balance-card slide-in" aria-label="Riepilogo saldo">
-            <div style="font-size: 0.875rem; color: var(--text-secondary);">Saldo Totale</div>
-            <div class="balance-amount" id="totalBalance" aria-live="polite">€0.00</div>
+            <div style="font-size: 0.875rem; color: var(--text-secondary);">Patrimonio Totale</div>
+            <div class="balance-amount positive" id="totalWealth" aria-live="polite">€0.00</div>
+            
+            <div class="balance-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 1rem;">
+                <div class="balance-item">
+                    <div class="balance-item-label">Liquidità</div>
+                    <div class="balance-item-value" id="totalLiquidity" style="color: var(--primary);">€0.00</div>
+                </div>
+                <div class="balance-item">
+                    <div class="balance-item-label">Capitale Investito</div>
+                    <div class="balance-item-value" id="totalInvested" style="color: #8b5cf6;">€0.00</div>
+                </div>
+            </div>
             <div class="balance-grid">
                 <div class="balance-item">
-                    <div class="balance-item-label">Entrate</div>
+                    <div class="balance-item-label">Entrate Reali</div>
                     <div class="balance-item-value income" id="totalIncome">€0.00</div>
                 </div>
                 <div class="balance-item">
-                    <div class="balance-item-label">Uscite</div>
+                    <div class="balance-item-label">Uscite Reali</div>
                     <div class="balance-item-value expense" id="totalExpense">€0.00</div>
                 </div>
             </div>
@@ -1300,8 +1338,13 @@
             </div>
 
             <div class="card">
-                <div class="card-title">💰 Andamento Saldo</div>
+                <div class="card-title">💰 Andamento Saldo Liquido</div>
                 <div class="chart-container"><canvas id="balanceChart"></canvas></div>
+            </div>
+
+            <div class="card" id="wealthCard" style="display: none;">
+                <div class="card-title">📈 Composizione Patrimonio</div>
+                <div class="chart-container"><canvas id="wealthChart"></canvas></div>
             </div>
 
             <div class="card">
@@ -1323,6 +1366,8 @@
                 <div class="type-selector">
                     <button type="button" class="type-btn income" data-type="income" onclick="selectType('income')">💰 Entrata</button>
                     <button type="button" class="type-btn expense active" data-type="expense" onclick="selectType('expense')">💸 Uscita</button>
+                    <button type="button" class="type-btn investment" data-type="investment" onclick="selectType('investment')">📈 Investimento</button>
+                    <button type="button" class="type-btn divestment" data-type="divestment" onclick="selectType('divestment')">🏦 Prelievo</button>
                 </div>
                 <form id="transactionForm" onsubmit="addTransaction(event)">
                     <div class="form-group">
@@ -1428,6 +1473,8 @@
             <div class="type-selector">
                 <button type="button" class="type-btn income" data-edit-type="income" onclick="selectEditType('income')">💰 Entrata</button>
                 <button type="button" class="type-btn expense" data-edit-type="expense" onclick="selectEditType('expense')">💸 Uscita</button>
+                <button type="button" class="type-btn investment" data-edit-type="investment" onclick="selectEditType('investment')">📈 Investimento</button>
+                <button type="button" class="type-btn divestment" data-edit-type="divestment" onclick="selectEditType('divestment')">🏦 Prelievo</button>
             </div>
             <form id="editForm" onsubmit="saveEditedTransaction(event)">
                 <input type="hidden" id="editTransactionId">
@@ -1470,6 +1517,8 @@
             <div class="type-selector">
                 <button type="button" class="type-btn income" data-edit-rec-type="income" onclick="selectEditRecurringType('income')">💰 Entrata</button>
                 <button type="button" class="type-btn expense" data-edit-rec-type="expense" onclick="selectEditRecurringType('expense')">💸 Uscita</button>
+                <button type="button" class="type-btn investment" data-edit-rec-type="investment" onclick="selectEditRecurringType('investment')">📈 Investimento</button>
+                <button type="button" class="type-btn divestment" data-edit-rec-type="divestment" onclick="selectEditRecurringType('divestment')">🏦 Prelievo</button>
             </div>
             <form id="editRecurringForm" onsubmit="saveEditedRecurring(event)">
                 <input type="hidden" id="editRecurringId">
@@ -1511,6 +1560,8 @@
                 <div class="type-selector">
                     <button type="button" class="type-btn income" data-rec-type="income" onclick="selectRecurringType('income')">💰 Entrata</button>
                     <button type="button" class="type-btn expense active" data-rec-type="expense" onclick="selectRecurringType('expense')">💸 Uscita</button>
+                    <button type="button" class="type-btn investment" data-rec-type="investment" onclick="selectRecurringType('investment')">📈 Investimento</button>
+                    <button type="button" class="type-btn divestment" data-rec-type="divestment" onclick="selectRecurringType('divestment')">🏦 Prelievo</button>
                 </div>
                 <div class="form-group">
                     <label for="recurringName">Nome *</label>
@@ -1552,7 +1603,9 @@
     <script>
         const CATEGORIES = {
             expense: ['🍕 Cibo', '🚗 Trasporti', '🐕 Animaletti', '💅🏻 Estetica', '🏠 Casa', '💊 Salute', '🎬 Svago', '✈️ Viaggi', '👕 Abbigliamento', '📱 Tecnologia', '🖥 PC', '🎮 Giochi', '📚 Istruzione', '🚬 Sigarette', '🎁 Regali', '📄 Assicurazioni', '📄 Mediche', '💳 Altro'],
-            income: ['💼 Stipendio', '💰 Freelance', '🎁 Regalo', '📈 Investimenti', '💵 Altro']
+            income: ['💼 Stipendio', '💰 Freelance', '🎁 Regalo', '💵 Altro'],
+            investment: ['🌍 ETF Azionario', '📈 Obbligazioni'],
+            divestment: ['💸 Vendita ETF', '🏦 Prelievo Capitale']
         };
 
         const MONTHS = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
@@ -1579,7 +1632,7 @@
             isSyncing: false
         };
 
-        const charts = { balance: null, monthlyBar: null, category: null };
+        const charts = { balance: null, wealth: null, monthlyBar: null, category: null };
         let deleteContext = { type: null, id: null };
         let searchDebounceTimer = null;
 
@@ -1990,13 +2043,13 @@
             }
             container.innerHTML = filtered.sort((a,b) => new Date(b.date) - new Date(a.date)).map(t => `
                 <div class="transaction-item slide-in">
-                    <div class="transaction-icon ${t.type}">${t.type === 'income' ? '💰' : '💸'}</div>
+                    <div class="transaction-icon ${t.type}">${t.type === 'income' ? '💰' : t.type === 'expense' ? '💸' : t.type === 'investment' ? '📈' : '🏦'}</div>
                     <div class="transaction-details">
                         <div class="transaction-name">${sanitizeHTML(t.name)}</div>
                         <div class="transaction-meta">${sanitizeHTML(t.category)} • ${formatDate(t.date)}</div>
                     </div>
                     <div class="transaction-right">
-                        <div class="transaction-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${formatAmount(t.amount)}</div>
+                        <div class="transaction-amount ${t.type}">${(t.type === 'income' || t.type === 'divestment') ? '+' : '-'}${formatAmount(t.amount)}</div>
                         <div class="transaction-actions">
                             <button class="btn-icon btn-edit" onclick="openEditModal('${t.id}')" title="Modifica">✏️</button>
                             <button class="btn-icon btn-delete" onclick="deleteTransaction('${t.id}')" title="Elimina">🗑️</button>
@@ -2013,12 +2066,13 @@
             }
             container.innerHTML = state.recurring.map(r => `
                 <div class="recurring-item">
+                    <div class="transaction-icon ${r.type}">${r.type === 'income' ? '💰' : r.type === 'expense' ? '💸' : r.type === 'investment' ? '📈' : '🏦'}</div>
                     <div class="recurring-info">
                         <div class="recurring-name">${sanitizeHTML(r.name)}</div>
                         <div class="recurring-meta">${sanitizeHTML(r.category)} • Giorno ${r.day}</div>
                     </div>
                     <div class="recurring-right">
-                        <div class="recurring-amount ${r.type}">${r.type === 'income' ? '+' : '-'}${formatAmount(r.amount)}</div>
+                        <div class="recurring-amount ${r.type}">${(r.type === 'income' || r.type === 'divestment') ? '+' : '-'}${formatAmount(r.amount)}</div>
                         <div class="recurring-actions">
                             <button class="btn-icon btn-edit" onclick="openEditRecurringModal('${r.id}')" title="Modifica">✏️</button>
                             <button class="btn-icon btn-delete" onclick="deleteRecurring('${r.id}')" title="Elimina">🗑️</button>
@@ -2064,18 +2118,157 @@
             renderTransactions();
             renderRecurring();
             updateCharts();
+            updateWealthChart();
+        }
+
+        function updateWealthChart() {
+            const ctx = document.getElementById('wealthChart');
+            const wealthCard = document.getElementById('wealthCard');
+            
+            if (!ctx || !wealthCard) return;
+
+            const filtered = getFilteredTransactions();
+            
+            const totalInvestedIn = state.transactions.filter(t => t.type === 'investment').reduce((sum, t) => sum + t.amount, 0);
+            const totalDivestedOut = state.transactions.filter(t => t.type === 'divestment').reduce((sum, t) => sum + t.amount, 0);
+            const globalInvested = totalInvestedIn - totalDivestedOut;
+            const hasAnyInvestments = state.transactions.some(t => t.type === 'investment' || t.type === 'divestment');
+            
+            if (!hasAnyInvestments || globalInvested < 0.01) {
+                wealthCard.style.display = 'none';
+                if (charts.wealth) { charts.wealth.destroy(); charts.wealth = null; }
+                return; 
+            }
+
+            wealthCard.style.display = 'block';
+            if (charts.wealth) { charts.wealth.destroy(); charts.wealth = null; }
+            if (!filtered.length) return;
+
+            let storiche = state.transactions.filter(t => {
+                if (state.typeFilter !== 'all' && t.type !== state.typeFilter) return false;
+                if (state.categoryFilter && t.category !== state.categoryFilter) return false;
+                if (state.searchQuery && !(t.name && t.name.toLowerCase().includes(state.searchQuery)) && !(t.category && t.category.toLowerCase().includes(state.searchQuery))) return false;
+                return true;
+            });
+            storiche.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            const filteredIds = new Set(filtered.map(t => t.id));
+            const dates = [];
+            const liquidityData = [];
+            const investedData = [];
+            const wealthData = [];
+
+            let runLiq = 0;
+            let runInv = 0;
+
+            storiche.forEach(t => {
+                const amount = parseFloat(t.amount) || 0;
+                if (t.type === 'income') runLiq += amount;
+                else if (t.type === 'expense') runLiq -= amount;
+                else if (t.type === 'investment') { runLiq -= amount; runInv += amount; }
+                else if (t.type === 'divestment') { runLiq += amount; runInv -= amount; }
+
+                if (filteredIds.has(t.id)) {
+                    const cleanDate = formatDate(t.date);
+                    if (dates.length > 0 && dates[dates.length - 1] === cleanDate) {
+                        liquidityData[liquidityData.length - 1] = runLiq;
+                        investedData[investedData.length - 1] = runInv;
+                        wealthData[wealthData.length - 1] = runLiq + runInv;
+                    } else {
+                        dates.push(cleanDate);
+                        liquidityData.push(runLiq);
+                        investedData.push(runInv);
+                        wealthData.push(runLiq + runInv);
+                    }
+                }
+            });
+
+            const colors = getChartColors();
+
+            charts.wealth = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        { 
+                            label: 'Capitale Investito', 
+                            data: investedData, 
+                            borderColor: '#8b5cf6', 
+                            backgroundColor: 'rgba(139, 92, 246, 0.2)', 
+                            fill: true, 
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            pointHitRadius: 20,
+                            pointHoverRadius: 6
+                        },
+                        { 
+                            label: 'Liquidità', 
+                            data: liquidityData, 
+                            borderColor: '#10b981', 
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)', 
+                            fill: true, 
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            pointHitRadius: 20,
+                            pointHoverRadius: 6
+                        },
+                        { 
+                            label: 'Patrimonio Totale', 
+                            data: wealthData, 
+                            borderColor: colors.textSecondary, 
+                            borderDash: [5, 5],
+                            backgroundColor: 'transparent', 
+                            fill: false, 
+                            tension: 0.3,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHitRadius: 20,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { labels: { color: colors.text } } },
+                    scales: {
+                        x: { ticks: { color: colors.textSecondary, maxTicksLimit: 6 } },
+                        y: { stacked: false, ticks: { color: colors.textSecondary } } // <-- Modifica fondamentale qui
+                    }
+                }
+            });
         }
 
         function updateBalance() {
             const filtered = getFilteredTransactions();
+            
             const income = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
             const expense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
-            const balance = income - expense;
+            
+            const investedIn = filtered.filter(t => t.type === 'investment').reduce((sum, t) => sum + t.amount, 0);
+            const divestedOut = filtered.filter(t => t.type === 'divestment').reduce((sum, t) => sum + t.amount, 0);
+            
+            const currentInvested = investedIn - divestedOut;
+            const liquidity = income - expense - investedIn + divestedOut;
+            const totalWealth = liquidity + currentInvested;
+
             document.getElementById('totalIncome').textContent = formatAmount(income);
             document.getElementById('totalExpense').textContent = formatAmount(expense);
-            const bEl = document.getElementById('totalBalance');
-            bEl.textContent = formatAmount(balance);
-            bEl.className = 'balance-amount ' + (balance >= 0 ? 'positive' : 'negative');
+            
+            const invEl = document.getElementById('totalInvested');
+            if(invEl) invEl.textContent = formatAmount(currentInvested);
+            
+            const liqEl = document.getElementById('totalLiquidity');
+            if(liqEl) {
+                liqEl.textContent = formatAmount(liquidity);
+                liqEl.style.color = liquidity < 0 ? 'var(--danger)' : 'var(--primary)';
+            }
+
+            const wealthEl = document.getElementById('totalWealth');
+            if(wealthEl) wealthEl.textContent = formatAmount(totalWealth);
         }
 
         function updateStats() {
@@ -2100,15 +2293,29 @@
             if (charts.balance) { charts.balance.destroy(); charts.balance = null; }
             if (!filtered.length) return;
             
-            const sorted = [...filtered].sort((a,b) => new Date(a.date) - new Date(b.date));
+            // Calcola lo storico basato su TUTTE le transazioni
+            let storiche = state.transactions.filter(t => {
+                if (state.typeFilter !== 'all' && t.type !== state.typeFilter) return false;
+                if (state.categoryFilter && t.category !== state.categoryFilter) return false;
+                if (state.searchQuery && !(t.name && t.name.toLowerCase().includes(state.searchQuery)) && !(t.category && t.category.toLowerCase().includes(state.searchQuery))) return false;
+                return true;
+            });
+            storiche.sort((a,b) => new Date(a.date) - new Date(b.date));
             
+            const filteredIds = new Set(filtered.map(t => t.id));
             let run = 0; 
             const map = {};
-            sorted.forEach(t => { 
+            
+            storiche.forEach(t => { 
                 const amount = parseFloat(t.amount) || 0;
-                run += t.type === 'income' ? amount : -amount;
-                const cleanDate = t.date.split('T')[0];
-                map[cleanDate] = run; 
+                if (t.type === 'income' || t.type === 'divestment') run += amount;
+                else run -= amount;
+                
+                // Salva il punto solo se la transazione rientra nel filtro visivo
+                if (filteredIds.has(t.id)) {
+                    const cleanDate = t.date.split('T')[0];
+                    map[cleanDate] = run; 
+                }
             });
             
             const dates = Object.keys(map);
@@ -2135,12 +2342,7 @@
                     plugins: { legend: { display: false } }, 
                     scales: { 
                         y: { ticks: { color: colors.textSecondary } }, 
-                        x: { 
-                            ticks: { 
-                                color: colors.textSecondary,
-                                maxTicksLimit: 8 
-                            } 
-                        } 
+                        x: { ticks: { color: colors.textSecondary, maxTicksLimit: 8 } } 
                     } 
                 }
             });
