@@ -1904,7 +1904,7 @@
                 return;
             }
 
-            triggerVibration(40); // Vibrazione al salvataggio
+            triggerVibration(40); // Vibrazione al salvataggio[cite: 1]
             const transaction = { id: generateId(), type: state.currentType, name, category, amount, date, description, timestamp: new Date().toISOString() };
             state.transactions.unshift(transaction);
             saveToStorage();
@@ -1912,7 +1912,11 @@
             
             document.getElementById('transactionForm').reset();
             initializeDate();
+            
+            // Pulisce lo stato e rimuove visivamente la selezione dai bottoni categoria
             state.selectedCategory = '';
+            document.querySelectorAll('#categoryGrid .category-btn').forEach(b => b.classList.remove('active'));
+            
             populateCategoryFilter();
             updateDashboard();
             showToast('Salvata', `${name} - ${formatAmount(amount)}`, 'success');
