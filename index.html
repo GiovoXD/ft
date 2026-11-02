@@ -1223,10 +1223,10 @@
     <main class="container" role="main">
         <!-- Balance Card -->
         <section class="balance-card slide-in" aria-label="Riepilogo saldo">
-            <div style="font-size: 0.875rem; color: var(--text-secondary);">Patrimonio Totale</div>
+            <div style="font-size: 0.875rem; color: var(--text-secondary);">Patrimonio Attuale</div>
             <div class="balance-amount positive" id="totalWealth" aria-live="polite">€0.00</div>
             
-            <div class="balance-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 1rem;">
+            <div class="balance-grid" id="investmentGrid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 1rem; display: none;">
                 <div class="balance-item">
                     <div class="balance-item-label">Liquidità</div>
                     <div class="balance-item-value" id="totalLiquidity" style="color: var(--primary);">€0.00</div>
@@ -1238,11 +1238,11 @@
             </div>
             <div class="balance-grid">
                 <div class="balance-item">
-                    <div class="balance-item-label">Entrate Reali</div>
+                    <div class="balance-item-label">Entrate Totali</div>
                     <div class="balance-item-value income" id="totalIncome">€0.00</div>
                 </div>
                 <div class="balance-item">
-                    <div class="balance-item-label">Uscite Reali</div>
+                    <div class="balance-item-label">Uscite Totali</div>
                     <div class="balance-item-value expense" id="totalExpense">€0.00</div>
                 </div>
             </div>
@@ -1602,7 +1602,7 @@
 
     <script>
         const CATEGORIES = {
-            expense: ['🍕 Cibo', '🚗 Trasporti', '🐕 Animaletti', '💅🏻 Estetica', '🏠 Casa', '💊 Salute', '🎬 Svago', '✈️ Viaggi', '👕 Abbigliamento', '📱 Tecnologia', '🖥 PC', '🎮 Giochi', '📚 Istruzione', '🚬 Sigarette', '🎁 Regali', '📄 Assicurazioni', '📄 Mediche', '💳 Altro'],
+            expense: ['🍕 Cibo', '🍷 Alcol', '🚗 Trasporti', '⛽ Carburante', '🔧 Manutenzioni', '🐕 Animaletti', '💅🏻 Estetica', '🏠 Casa', '🧼 Detersivi', '💊 Salute', '🎬 Svago', '📺 Abbonamenti', '✈️ Viaggi', '👕 Abbigliamento', '📱 Tecnologia', '📞 Telefonia', '🌐 Internet', '🖥 PC', '🎮 Giochi', '📚 Istruzione', '🚬 Sigarette', '🎁 Regali', '📄 Assicurazioni', '📄 Mediche', '💳 Altro'],
             income: ['💼 Stipendio', '💰 Freelance', '🎁 Regalo', '💵 Altro'],
             investment: ['🌍 ETF Azionario', '📈 Obbligazioni'],
             divestment: ['💸 Vendita ETF', '🏦 Prelievo Capitale']
@@ -2249,6 +2249,13 @@
         function updateBalance() {
             const filtered = getFilteredTransactions();
             
+            // Mostra o nasconde la griglia "Liquidità" e "Capitale Investito" in base agli investimenti
+            const hasAnyInvestments = state.transactions.some(t => t.type === 'investment' || t.type === 'divestment');
+            const invGrid = document.getElementById('investmentGrid');
+            if (invGrid) {
+                invGrid.style.display = hasAnyInvestments ? 'grid' : 'none';
+            }
+            
             const income = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
             const expense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
             
@@ -2279,9 +2286,38 @@
             const filtered = getFilteredTransactions();
             const exp = filtered.filter(t => t.type === 'expense');
             const inc = filtered.filter(t => t.type === 'income');
+            
             document.getElementById('statTransactions').textContent = filtered.length;
-            document.getElementById('statAvgExpense').textContent = formatAmount(exp.length ? exp.reduce((a,b)=>a+b.amount,0)/exp.length : 0);
-            document.getElementById('statAvgIncome').textContent = formatAmount(inc.length ? inc.reduce((a,b)=>a+b.amount,0)/inc.length : 0);
+
+            // Raggruppiamo per mese (YYYY-MM) per calcolare una vera media mensile
+            const monthlyExpenses = {};
+            const monthlyIncomes = {};
+
+            exp.forEach(t => {
+                if (!t.date) return;
+                const monthKey = t.date.substring(0, 7);
+                monthlyExpenses[monthKey] = (monthlyExpenses[monthKey] || 0) + t.amount;
+            });
+
+            inc.forEach(t => {
+                if (!t.date) return;
+                const monthKey = t.date.substring(0, 7);
+                monthlyIncomes[monthKey] = (monthlyIncomes[monthKey] || 0) + t.amount;
+            });
+
+            const numExpenseMonths = Object.keys(monthlyExpenses).length;
+            const numIncomeMonths = Object.keys(monthlyIncomes).length;
+
+            const avgMonthlyExpense = numExpenseMonths > 0 
+                ? Object.values(monthlyExpenses).reduce((a, b) => a + b, 0) / numExpenseMonths 
+                : 0;
+                
+            const avgMonthlyIncome = numIncomeMonths > 0 
+                ? Object.values(monthlyIncomes).reduce((a, b) => a + b, 0) / numIncomeMonths 
+                : 0;
+
+            document.getElementById('statAvgExpense').textContent = formatAmount(avgMonthlyExpense);
+            document.getElementById('statAvgIncome').textContent = formatAmount(avgMonthlyIncome);
         }
 
         function updateCharts() { updateBalanceChart(); updateMonthlyBarChart(); updateCategoryChart(); }
